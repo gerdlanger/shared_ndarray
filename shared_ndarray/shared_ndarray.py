@@ -1,14 +1,12 @@
-"""A pickleable wrapper for sharing NumPy ndarrays between processes using POSIX shared memory."""
-
-import mmap
+"""A pickleable wrapper for sharing NumPy ndarrays between processes using multiprocessing shared memory."""
 
 import numpy as np
-import posix_ipc
+import multiprocessing.shared_memory as shm
 
 
 class SharedNDArray:
     """Creates a new SharedNDArray, a pickleable wrapper for sharing NumPy ndarrays between
-    processes using POSIX shared memory.
+    processes using multiprocessing shared memory.
 
     SharedNDArrays are designed to be sent over multiprocessing.Pipe and Queue without serializing
     or transmitting the underlying ndarray or buffer. While the associated file descriptor is
@@ -16,18 +14,18 @@ class SharedNDArray:
     the process ends: you must manually call the unlink() method from the last process to use it.
 
     Attributes:
-        array: The wrapped NumPy ndarray, backed by POSIX shared memory.
+        array: The wrapped NumPy ndarray, backed by shared memory.
     """
 
     def __init__(self, shape, dtype=np.float64, name=None):
         """Creates a new SharedNDArray.
 
-        If name is left blank, a new POSIX shared memory segment is created using a random name.
+        If name is left blank, a new shared memory segment is created using a system defined name.
 
         Args:
             shape: Shape of the wrapped ndarray.
             dtype: Data type of the wrapped ndarray.
-            name: Optional; the filesystem path of the underlying POSIX shared memory.
+            name: Optional; the filesystem path of the underlying shared memory.
 
         Returns:
             A new SharedNDArray of the given shape and dtype and backed by the given optional name.
@@ -37,11 +35,10 @@ class SharedNDArray:
         """
         size = int(np.prod(shape)) * np.dtype(dtype).itemsize
         if name:
-            self._shm = posix_ipc.SharedMemory(name)
+            self._shm = shm.SharedMemory(name)
         else:
-            self._shm = posix_ipc.SharedMemory(None, posix_ipc.O_CREX, size=size)
-        self._buf = mmap.mmap(self._shm.fd, size)
-        self.array = np.ndarray(shape, dtype, self._buf, order='C')
+            self._shm = shm.SharedMemory(None, create=True, size=size)
+        self.array = np.ndarray(shape, dtype, self._shm.buf, order='C')
 
     @classmethod
     def copy(cls, arr):
@@ -83,8 +80,7 @@ class SharedNDArray:
         self._shm.unlink()
 
     def __del__(self):
-        self._buf.close()
-        self._shm.close_fd()
+        self._shm.close()
 
     def __getstate__(self):
         return self.array.shape, self.array.dtype, self._shm.name

@@ -1,8 +1,8 @@
 shared\_ndarray
 ===============
 
-A pickleable wrapper for sharing NumPy ndarrays between processes using POSIX
-shared memory.
+A pickleable wrapper for sharing NumPy ndarrays between processes using
+Python 3.8 shared memory.
 
 SharedNDArrays are designed to be sent over multiprocessing.Pipe and Queue
 without serializing or transmitting the underlying ndarray or buffer. While the
@@ -53,4 +53,4 @@ Dependencies
 ------------
 
 - `numpy <http://www.numpy.org>`_
-- `posix_ipc <http://semanchuk.com/philip/posix_ipc/>`_
+- Requires Python >= 3.8

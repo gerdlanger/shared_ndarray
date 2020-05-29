@@ -6,15 +6,20 @@ import numpy as np
 from . import SharedNDArray, SharedNDArrayError
 
 
+def write_to_shm(q):
+    shm = q.get()
+    shm.array += 1
+
+
+def unlink_shm(q):
+    q.get().unlink()
+
+
 class TestSharedNDArray(unittest.TestCase):
     def test_create(self):
         try:
             shm = SharedNDArray(4)
             shm.array[0] = 1
-
-            def write_to_shm(q):
-                shm = q.get()
-                shm.array += 1
 
             q = mp.Queue()
             p = mp.Process(target=write_to_shm, args=(q,))
@@ -35,7 +40,7 @@ class TestSharedNDArray(unittest.TestCase):
     def test_unlink_two_processes(self):
         shm = SharedNDArray(4)
         q = mp.Queue()
-        p = mp.Process(target=lambda q: q.get().unlink(), args=(q,))
+        p = mp.Process(target=unlink_shm, args=(q,))
         p.start()
         q.put(shm)
         p.join()
