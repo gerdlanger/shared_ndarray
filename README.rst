@@ -15,21 +15,23 @@ Usage
 
 .. code:: python
 
-    from __future__ import print_function
-
     import multiprocessing as mp
 
     import numpy as np
     from shared_ndarray import SharedNDArray
 
-    try:
-        shm = SharedNDArray((4, 4))
-        shm.array[0, 0] = 1
-        p = mp.Process(target=lambda shm: print(shm.array), args=(shm,))
-        p.start()
-        p.join()
-    finally:
-        shm.unlink()
+    def child(shm):
+        print(shm.array)
+
+    if __name__ == '__main__':
+        try:
+            shm = SharedNDArray((4, 4))
+            shm.array[0, 0] = 1
+            p = mp.Process(target=child(shm))
+            p.start()
+            p.join()
+        finally:
+            shm.unlink()
 
 This should print::
 
