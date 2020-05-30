@@ -20,4 +20,5 @@ setuptools.setup(
     keywords='numpy ndarray array shared memory shm',
     packages=['shared_ndarray'],
     install_requires=['numpy >= 1.11.3'],
+    python_requires='>=3.8',
 )
