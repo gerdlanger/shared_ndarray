@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
     name='shared-ndarray',
-    version='1.1.1',
+    version='1.2',
     description='A pickleable wrapper for sharing NumPy ndarrays between processes using shared memory.',
     long_description=open('README.rst').read(),
     url='https://github.com/gerdlanger/shared_ndarray',
